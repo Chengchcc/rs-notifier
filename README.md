@@ -36,7 +36,7 @@ fn main() {
 }
 ```
 
-## DelvelopMent
+## Development
 You can customize the notifier by implementing `rs-notifier::notification::Notifier`
 ### eg
 ```rust
