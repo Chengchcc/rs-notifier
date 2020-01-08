@@ -1,5 +1,5 @@
 # rs-notifier
-When your program panic, notify a message to your server (eg: slack)
+rust social software notification  (eg: slack)
 
 ## Example
 ```rust
