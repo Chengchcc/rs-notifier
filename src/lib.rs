@@ -14,23 +14,14 @@ use slack_notify::SlackNotify;
 
 #[cfg(test)]
 mod tests {
-    use super::notification::{Notification, MessageBuilder, PanicCatcher};
+    use super::notification::Notifier;
     use super::slack_notify::SlackNotify;
-    struct CustomMessageBuilder;
-
-    impl MessageBuilder for CustomMessageBuilder {
-        fn build(&self, name: &str)->String {
-            format!("test, test, test, {}", name)
-        }
-    }
+  
     
     #[test]
     fn it_works() {
         let slack = SlackNotify::new("");
-        let messagebuilder = CustomMessageBuilder{};
-        let notif = Notification::new(slack, messagebuilder);
-        let panicCatcher = PanicCatcher::new("123", notif);
-        panic!("panic!!");
+        let _ = slack.notify("test test");
     }
 }
 

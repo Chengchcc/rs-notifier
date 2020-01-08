@@ -3,36 +3,13 @@ When your program panic, notify a message to your server (eg: slack)
 
 ## Example
 ```rust
-use rs-notifier::notification::{Notification, MessageBuilder, PanicCatcher};
+
+use rs-notifier::notification::Notifier;
 use rs-notifier::slack_notify::SlackNotify;
-struct CustomMessageBuilder;
-
-impl MessageBuilder for CustomMessageBuilder {
-    fn build(&self, name: &str)->String {
-        format!("test, test, test, {}", name)
-    }
-}
 
 fn main() {
     let slack = SlackNotify::new("YOUR SLACK INCOMING WEBHOOK URL");
-    let messagebuilder = CustomMessageBuilder{};
-    let notif = Notification::new(slack, messagebuilder);
-    let panicCatcher = PanicCatcher::new("123", notif);
-    panic!("panic!!");
-}
-// or when use in thread
-
-fn main() {
-    let slack = SlackNotify::new("YOUR SLACK INCOMING WEBHOOK URL");
-    let messagebuilder = CustomMessageBuilder{};
-    let notif = Notification::new(slack, messagebuilder);
-    let panicCatcher = PanicCatcher::new("123", notif);
-
-    let handler = std::thread::spawn(move || panicCatcher.notification.catch("thread name", ||{
-        // your thread code
-    }))
-
-    handler.join().unrawp();
+    let _ = slack.notify("test test");
 }
 ```
 
@@ -40,28 +17,47 @@ fn main() {
 You can customize the notifier by implementing `rs-notifier::notification::Notifier`
 ### eg
 ```rust
-pub struct SlackNotify {
+pub struct customNotify {
     pub url: String
 }
 
-impl Notifier for SlackNotify {
-    fn notify(&self, message: &str) {
-        if &self.url == "" {
-            return;
+
+impl customNotify {
+    pub fn new(url: &str)-> SlackNotify{
+        SlackNotify{
+            url: url.to_owned()
         }
-        let _ = ureq::post(&self.url)
+    }
+}
+
+impl Notifier for customNotify {
+    type body = String;
+
+    fn notify(&self, msg: &str) -> Result<(), String> {
+        if &self.url == "" {
+            return Err("not set url".to_owned());
+        }
+        let resp = ureq::post(&self.url)
                 .set("Content-Type", "application/json")
                 .set("Accept", "application/json")
-                .send_json(json!({
-                    "text": "server crash",
-                    "attachments":[
-                        {
-                            "mrkdwn_in": ["text"],
-                            "color": "#DD2248",
-                            "text": message,
-                        }
-                    ]
-        }));
+                .send_json(json!(&self.bodybuild(msg)));
+        if resp.error() {
+            return Err("send error".to_owned());
+        }
+        Ok(())
+    }
+
+    fn bodybuild(&self, message: &str) -> Self::body {
+        json!({
+            "text": "server crash",
+            "attachments":[
+                {
+                    "mrkdwn_in": ["text"],
+                    "color": "#DD2248",
+                    "text": message,
+                }
+            ]}).as_str().unwrap().to_owned()
+    
     }
 }
 ```
