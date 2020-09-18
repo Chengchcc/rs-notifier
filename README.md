@@ -23,8 +23,8 @@ pub struct customNotify {
 
 
 impl customNotify {
-    pub fn new(url: &str)-> SlackNotify{
-        SlackNotify{
+    pub fn new(url: &str)-> customNotify{
+        customNotify{
             url: url.to_owned()
         }
     }
